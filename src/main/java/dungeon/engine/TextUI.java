@@ -67,29 +67,28 @@ public class TextUI
     {
         switch (command)
         {
-            case "UP":
-                System.out.println("Moving up");
-                break;
-            case "DOWN":
-                System.out.println("Moving down");
-                break;
-            case "LEFT":
-                System.out.println("Moving left");
-                break;
-            case "RIGHT":
-                System.out.println("Moving right");
-                break;
-            case "HELP":
-                printHelp();
-                break;
-            case "QUIT":
+            case "UP", "DOWN", "LEFT", "RIGHT" -> {
+                if (engine.movePlayer(command)) {
+                    System.out.println("Moving " + command.toLowerCase());
+                } else {
+                    System.out.println("Cannot move " + command.toLowerCase());
+                }
+            }
+            case "HELP" -> printHelp();
+            case "QUIT" -> {
                 isRunning = false;
                 System.out.println("Thanks for playing!");
                 return; //Don't display map after quitting
-            default:
-                System.out.println("Unknown command. Type HELP for commands.");
+            }
+            default -> System.out.println("Unknown command. Type HELP for commands.");
         }
         displayGrid(); //Display map after each command
+
+        // Display game state
+        GameState state = engine.getGameState();
+        System.out.println("\nHP: " + state.getPlayerHP() +
+                " | Score: " + state.getScore() +
+                " | Moves left: " + state.getMovesLeft());
     }
 
     private void printHelp() {
