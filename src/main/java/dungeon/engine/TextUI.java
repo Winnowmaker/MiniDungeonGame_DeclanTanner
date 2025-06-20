@@ -63,10 +63,15 @@ public class TextUI
     }
 
 
-    private void processCommand(String command)
-    {
-        switch (command)
-        {
+    private void processCommand(String command) {
+        // First check if game is completed
+        if (engine.isGameCompleted()) {
+            displayEndGame();
+            isRunning = false;
+            return;
+        }
+
+        switch (command) {
             case "UP", "DOWN", "LEFT", "RIGHT" -> {
                 if (engine.movePlayer(command)) {
                     System.out.println("Moving " + command.toLowerCase());
@@ -82,13 +87,37 @@ public class TextUI
             }
             default -> System.out.println("Unknown command. Type HELP for commands.");
         }
-        displayGrid(); //Display map after each command
 
-        // Display game state
+        // After processing command, check if game completed
+        if (engine.isGameCompleted()) {
+            displayEndGame();
+            isRunning = false;
+            return;
+        }
+
+        displayGrid();
+        displayGameState();
+    }
+
+    private void displayGameState() {
         GameState state = engine.getGameState();
-        System.out.println("\nHP: " + state.getPlayerHP() +
+        System.out.println("\n=== LEVEL " + state.getCurrentLevel() + " ===");
+        System.out.println("HP: " + state.getPlayerHP() +
                 " | Score: " + state.getScore() +
                 " | Moves left: " + state.getMovesLeft());
+    }
+
+    // New method to display end game screen
+    private void displayEndGame() {
+        System.out.println("\n=========================");
+        System.out.println("    GAME COMPLETED!");
+        System.out.println("=========================");
+        System.out.println("Final Score: " + engine.getGameState().getScore());
+        System.out.println("HP Remaining: " + engine.getGameState().getPlayerHP());
+        System.out.println("Moves Remaining: " + engine.getGameState().getMovesLeft());
+        System.out.println("=========================");
+        System.out.println("Thank you for playing!");
+        System.out.println("=========================\n");
     }
 
     private void printHelp() {
