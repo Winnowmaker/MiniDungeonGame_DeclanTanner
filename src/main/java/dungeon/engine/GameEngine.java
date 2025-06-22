@@ -32,38 +32,38 @@ public class GameEngine {
         return map[pos.getRow()][pos.getCol()].getEntityType() == EntityType.EXIT;
     }
 
-    // Method to set up each level
-    private void initializeLevel(boolean isFirstLevel) {
-        map = new Cell[size][size];
-        
-        // Create empty map
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                map[i][j] = new Cell(EntityType.EMPTY);
-            }
+private void initializeLevel(boolean isFirstLevel) {
+    map = new Cell[size][size];
+    
+    // Create empty map
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            map[i][j] = new Cell(EntityType.EMPTY);
         }
-
-        if (isFirstLevel) {
-            // Level 1: Start at top-left, exit at bottom-right
-            map[0][0].setEntityType(EntityType.ENTRY);
-            map[size-1][size-1].setEntityType(EntityType.EXIT);
-            map[0][0].setEntityType(EntityType.PLAYER);
-            gameState.getPlayerPosition().setRow(0);
-            gameState.getPlayerPosition().setCol(0);
-            lastExitPosition = new GameState.Position(size-1, size-1);
-        } else {
-            // Level 2: Start where level 1 ended, exit at top-left
-            map[lastExitPosition.getRow()][lastExitPosition.getCol()].setEntityType(EntityType.ENTRY);
-            map[0][0].setEntityType(EntityType.EXIT);
-            map[lastExitPosition.getRow()][lastExitPosition.getCol()].setEntityType(EntityType.PLAYER);
-            gameState.getPlayerPosition().setRow(lastExitPosition.getRow());
-            gameState.getPlayerPosition().setCol(lastExitPosition.getCol());
-        }
-
-        createMazeWalls();
-        placeTraps();
-        placeGold();
     }
+
+    if (isFirstLevel) {
+        // Level 1 setup...
+        map[0][0].setEntityType(EntityType.ENTRY);
+        map[size-1][size-1].setEntityType(EntityType.EXIT);
+        map[0][0].setEntityType(EntityType.PLAYER);
+        gameState.getPlayerPosition().setRow(0);
+        gameState.getPlayerPosition().setCol(0);
+        lastExitPosition = new GameState.Position(size-1, size-1);
+    } else {
+        // Level 2 setup...
+        map[lastExitPosition.getRow()][lastExitPosition.getCol()].setEntityType(EntityType.ENTRY);
+        map[0][0].setEntityType(EntityType.EXIT);
+        map[lastExitPosition.getRow()][lastExitPosition.getCol()].setEntityType(EntityType.PLAYER);
+        gameState.getPlayerPosition().setRow(lastExitPosition.getRow());
+        gameState.getPlayerPosition().setCol(lastExitPosition.getCol());
+    }
+
+    createMazeWalls();
+    placeTraps();
+    placeGold();
+    placeHealthPotions();  // Add this line to place health potions
+}
 
     public boolean movePlayer(String direction) {
         if (gameCompleted) {
@@ -85,10 +85,11 @@ public class GameEngine {
             // Check if next position is exit before moving
             boolean isExitReached = isAtExit(newPos);
         
-            // Check for trap or gold
+            // Check for entities at new position
             EntityType nextCell = map[newPos.getRow()][newPos.getCol()].getEntityType();
             boolean isTrap = nextCell == EntityType.TRAP;
             boolean isGold = nextCell == EntityType.GOLD;
+            boolean isPotion = nextCell == EntityType.HEALTH_POTION;
         
             // Update map
             map[currentPos.getRow()][currentPos.getCol()].setEntityType(EntityType.EMPTY);
@@ -108,6 +109,14 @@ public class GameEngine {
             if (isGold) {
                 gameState.addScore(10);
                 System.out.println("You found gold! +10 points!");
+            }
+
+            // Handle health potion
+            if (isPotion) {
+                int oldHP = gameState.getPlayerHP();
+                gameState.changeHP(4);
+                int healedAmount = gameState.getPlayerHP() - oldHP;
+                System.out.println("You found a health potion! Healed for " + healedAmount + " HP!");
             }
 
             // Handle level completion if exit was reached
@@ -223,6 +232,22 @@ private void placeGold() {
         if (map[row][col].getEntityType() == EntityType.EMPTY) {
             map[row][col].setEntityType(EntityType.GOLD);
             goldToPlace--;
+        }
+    }
+}
+private void placeHealthPotions() {
+    // Place 2 health potions per level
+    int potionsToPlace = 2;
+    java.util.Random random = new java.util.Random();
+    
+    while (potionsToPlace > 0) {
+        int row = random.nextInt(size);
+        int col = random.nextInt(size);
+        
+        // Only place potion if the cell is empty
+        if (map[row][col].getEntityType() == EntityType.EMPTY) {
+            map[row][col].setEntityType(EntityType.HEALTH_POTION);
+            potionsToPlace--;
         }
     }
 }
