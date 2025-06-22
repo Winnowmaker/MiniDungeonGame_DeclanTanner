@@ -62,7 +62,9 @@ private void initializeLevel(boolean isFirstLevel) {
     createMazeWalls();
     placeTraps();
     placeGold();
-    placeHealthPotions();  // Add this line to place health potions
+    placeHealthPotions();
+    placeMeleeMutants();
+    placeRangedMutants();  // Add this line to place ranged mutants
 }
 
     public boolean movePlayer(String direction) {
@@ -82,22 +84,32 @@ private void initializeLevel(boolean isFirstLevel) {
         }
 
         if (isValidMove(newPos)) {
-            // Check if next position is exit before moving
-            boolean isExitReached = isAtExit(newPos);
-        
-            // Check for entities at new position
             EntityType nextCell = map[newPos.getRow()][newPos.getCol()].getEntityType();
             boolean isTrap = nextCell == EntityType.TRAP;
             boolean isGold = nextCell == EntityType.GOLD;
             boolean isPotion = nextCell == EntityType.HEALTH_POTION;
+            boolean isMeleeMutant = nextCell == EntityType.MELEE_MUTANT;
+            boolean isRangedMutant = nextCell == EntityType.RANGED_MUTANT;
         
-            // Update map
+            // Update map and position
             map[currentPos.getRow()][currentPos.getCol()].setEntityType(EntityType.EMPTY);
             map[newPos.getRow()][newPos.getCol()].setEntityType(EntityType.PLAYER);
-
-            // Update player position
             gameState.getPlayerPosition().setRow(newPos.getRow());
             gameState.getPlayerPosition().setCol(newPos.getCol());
+
+            // Handle existing collectibles and melee combat...
+            
+            // Handle ranged mutant melee combat
+            if (isRangedMutant) {
+                gameState.addScore(2);
+                System.out.println("You defeated a ranged mutant! Gained 2 points!");
+            }
+
+            // Handle ranged attacks after movement
+            handleRangedAttacks();
+
+            // Check if next position is exit before moving
+            boolean isExitReached = isAtExit(newPos);
 
             // Handle trap damage
             if (isTrap) {
@@ -117,6 +129,13 @@ private void initializeLevel(boolean isFirstLevel) {
                 gameState.changeHP(4);
                 int healedAmount = gameState.getPlayerHP() - oldHP;
                 System.out.println("You found a health potion! Healed for " + healedAmount + " HP!");
+            }
+
+            // Handle melee mutant combat
+            if (isMeleeMutant) {
+                gameState.changeHP(-2);  // Take 2 damage
+                gameState.addScore(2);   // Gain 2 points
+                System.out.println("You defeated a melee mutant! Took 2 damage but gained 2 points!");
             }
 
             // Handle level completion if exit was reached
@@ -248,6 +267,91 @@ private void placeHealthPotions() {
         if (map[row][col].getEntityType() == EntityType.EMPTY) {
             map[row][col].setEntityType(EntityType.HEALTH_POTION);
             potionsToPlace--;
+        }
+    }
+}
+private void placeMeleeMutants() {
+    // Place 3 melee mutants per level
+    int mutantsToPlace = 3;
+    java.util.Random random = new java.util.Random();
+    
+    while (mutantsToPlace > 0) {
+        int row = random.nextInt(size);
+        int col = random.nextInt(size);
+        
+        // Only place mutant if the cell is empty
+        if (map[row][col].getEntityType() == EntityType.EMPTY) {
+            map[row][col].setEntityType(EntityType.MELEE_MUTANT);
+            mutantsToPlace--;
+        }
+    }
+}
+private void placeRangedMutants() {
+    // Place 3 ranged mutants per level
+    int mutantsToPlace = 3;
+    java.util.Random random = new java.util.Random();
+    
+    while (mutantsToPlace > 0) {
+        int row = random.nextInt(size);
+        int col = random.nextInt(size);
+        
+        // Only place mutant if the cell is empty
+        if (map[row][col].getEntityType() == EntityType.EMPTY) {
+            map[row][col].setEntityType(EntityType.RANGED_MUTANT);
+            mutantsToPlace--;
+        }
+    }
+}
+
+private boolean canRangedMutantShoot(int mutantRow, int mutantCol, int playerRow, int playerCol) {
+    // Check if player is within 2 cells (Manhattan distance)
+    int distance = Math.abs(mutantRow - playerRow) + Math.abs(mutantCol - playerCol);
+    if (distance > 2 || distance == 0) return false;
+    
+    // Check if there's a wall between mutant and player
+    // For horizontal movement
+    if (mutantRow == playerRow) {
+        int step = (playerCol > mutantCol) ? 1 : -1;
+        for (int col = mutantCol + step; col != playerCol; col += step) {
+            if (map[mutantRow][col].getEntityType() == EntityType.WALL) {
+                return false;
+            }
+        }
+    }
+    // For vertical movement
+    else if (mutantCol == playerCol) {
+        int step = (playerRow > mutantRow) ? 1 : -1;
+        for (int row = mutantRow + step; row != playerRow; row += step) {
+            if (map[row][mutantCol].getEntityType() == EntityType.WALL) {
+                return false;
+            }
+        }
+    }
+    // For diagonal movement (return false as it's harder to implement line of sight)
+    else {
+        return false;
+    }
+    
+    return true;
+}
+private void handleRangedAttacks() {
+    GameState.Position playerPos = gameState.getPlayerPosition();
+    java.util.Random random = new java.util.Random();
+    
+    // Check all ranged mutants
+    for (int row = 0; row < size; row++) {
+        for (int col = 0; col < size; col++) {
+            if (map[row][col].getEntityType() == EntityType.RANGED_MUTANT) {
+                if (canRangedMutantShoot(row, col, playerPos.getRow(), playerPos.getCol())) {
+                    // 50% chance to hit
+                    if (random.nextBoolean()) {
+                        gameState.changeHP(-2);
+                        System.out.println("A ranged mutant hit you for 2 damage!");
+                    } else {
+                        System.out.println("A ranged mutant missed their shot!");
+                    }
+                }
+            }
         }
     }
 }
