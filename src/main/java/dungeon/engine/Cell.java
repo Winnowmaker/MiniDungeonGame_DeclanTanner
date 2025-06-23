@@ -3,10 +3,12 @@ package dungeon.engine;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
-public abstract class Cell extends StackPane {
+public abstract class Cell extends StackPane
+{
     protected Text displayText;
     
-    public Cell() {
+    public Cell()
+    {
         this.displayText = new Text();
         getChildren().add(displayText);
         updateDisplay();
@@ -21,7 +23,8 @@ public abstract class Cell extends StackPane {
     // Method to get cell type (for UI to determine display)
     public abstract String getType();
     
-    protected void updateDisplay() {
+    protected void updateDisplay()
+    {
         displayText.setText(getType());
     }
 }

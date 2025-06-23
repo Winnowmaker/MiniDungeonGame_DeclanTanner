@@ -1,16 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dungeon.gui.Controller">
+<BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dungeon.gui.Controller">
     <padding>
         <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
     </padding>
 
     <center>
         <GridPane fx:id="gridPane" prefHeight="600.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-
         </GridPane>
     </center>
+    
+    <right>
+        <VBox fx:id="statsPane" spacing="10" alignment="TOP_CENTER">
+            <Label fx:id="levelLabel" style="-fx-font-size: 18px;"/>
+            <Label fx:id="healthLabel"/>
+            <Label fx:id="scoreLabel"/>
+            <Label fx:id="movesLabel"/>
+            <Button fx:id="saveButton" text="Save Game"/>
+            <Button fx:id="loadButton" text="Load Game"/>
+
+            <VBox spacing="5" alignment="CENTER" style="-fx-padding: 20 0 0 0;">
+                <Button fx:id="upButton" text="↑" prefWidth="50"/>
+                <HBox spacing="5" alignment="CENTER">
+                    <Button fx:id="leftButton" text="←" prefWidth="50"/>
+                    <Button fx:id="rightButton" text="→" prefWidth="50"/>
+                </HBox>
+                <Button fx:id="downButton" text="↓" prefWidth="50"/>
+            </VBox>
+        </VBox>
+    </right>
 </BorderPane>

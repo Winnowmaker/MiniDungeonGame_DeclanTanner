@@ -1,25 +1,41 @@
 package dungeon.engine;
 
-public class GameEngine {
+public class GameEngine
+{
     private Cell[][] map;
     private GameState gameState;
     private final int size;
     private final int difficultyLevel;
     private GameState.Position lastExitPosition;
-    private boolean gameCompleted; // New variable to track game completion
+    private boolean gameCompleted;
 
-    // Add default constructor that uses size and default difficulty level
-    public GameEngine(int size) {
+    public GameEngine(int size)
+    {
         this(size, 1); // Use difficulty level 1 as default
     }
 
-    // Existing constructor
-    public GameEngine(int size, int difficultyLevel) {
+    public GameEngine(int size, int difficultyLevel)
+    {
         this.size = size;
         this.difficultyLevel = difficultyLevel;
         this.gameState = new GameState(difficultyLevel);
-        this.gameCompleted = false; // Initialize as not completed
+        this.gameCompleted = false;
         initializeLevel(true); // Start first level
+    }
+
+    public GameEngine(int size, GameState loadedState)
+    {
+        this.size = size;
+        this.difficultyLevel = loadedState.getDifficultyLevel();
+        this.gameState = loadedState;
+        this.gameCompleted = false;
+        
+        // Initialize the level based on the loaded state
+        initializeLevel(loadedState.getCurrentLevel() == 1);
+        
+        // Restore player position from loaded state
+        GameState.Position playerPos = loadedState.getPlayerPosition();
+        map[playerPos.getRow()][playerPos.getCol()] = CellFactory.createCell("PLAYER");
     }
 
     // Add getter for game completion status
@@ -28,11 +44,13 @@ public class GameEngine {
     }
 
     // Method to check if player reached exit
-private boolean isAtExit(GameState.Position pos) {
+private boolean isAtExit(GameState.Position pos)
+{
     return map[pos.getRow()][pos.getCol()].getType().equals("EXIT");
 }
 
-private void initializeLevel(boolean isFirstLevel) {
+private void initializeLevel(boolean isFirstLevel)
+{
     map = new Cell[size][size];
     
     // Create empty map
@@ -41,41 +59,42 @@ private void initializeLevel(boolean isFirstLevel) {
             map[i][j] = CellFactory.createCell("EMPTY");
         }
     }
-    
-    // Rest of initialization...
 
-    if (isFirstLevel) {
-        // Level 1 setup...
+    if (isFirstLevel)
+    {
         map[0][0] = CellFactory.createCell("ENTRY");
         map[size-1][size-1] = CellFactory.createCell("EXIT");
         map[0][0] = CellFactory.createCell("PLAYER");
         gameState.getPlayerPosition().setRow(0);
         gameState.getPlayerPosition().setCol(0);
         lastExitPosition = new GameState.Position(size-1, size-1);
-    } else {
-        // Level 2 setup...
+    }
+    else
+    {
         map[lastExitPosition.getRow()][lastExitPosition.getCol()] = CellFactory.createCell("ENTRY");
         map[0][0] = CellFactory.createCell("EXIT");
         map[lastExitPosition.getRow()][lastExitPosition.getCol()] = CellFactory.createCell("PLAYER");
         gameState.getPlayerPosition().setRow(lastExitPosition.getRow());
         gameState.getPlayerPosition().setCol(lastExitPosition.getCol());
     }
-
     createMazeWalls();
     placeTraps();
     placeGold();
     placeHealthPotions();
     placeMeleeMutants();
-    placeRangedMutants();  // Add this line to place ranged mutants
+    placeRangedMutants();
 }
 
-public boolean movePlayer(String direction) {
-    if (gameCompleted) {
+public boolean movePlayer(String direction)
+{
+    if (gameCompleted)
+    {
         return false;
     }
 
     // Check for game over conditions first
-    if (gameState.isGameOver()) {
+    if (gameState.isGameOver())
+    {
         handleGameOver();
         return false;
     }
@@ -84,14 +103,16 @@ public boolean movePlayer(String direction) {
     GameState.Position newPos = new GameState.Position(currentPos.getRow(), currentPos.getCol());
 
     // Calculate new position based on direction
-    switch (direction) {
+    switch (direction)
+    {
         case "UP" -> newPos.setRow(currentPos.getRow() - 1);
         case "DOWN" -> newPos.setRow(currentPos.getRow() + 1);
         case "LEFT" -> newPos.setCol(currentPos.getCol() - 1);
         case "RIGHT" -> newPos.setCol(currentPos.getCol() + 1);
     }
 
-    if (isValidMove(newPos)) {
+    if (isValidMove(newPos))
+    {
         // Check if next position is exit BEFORE moving
         boolean isExitReached = isAtExit(newPos);
         
@@ -104,18 +125,18 @@ public boolean movePlayer(String direction) {
         
         gameState.getPlayerPosition().setRow(newPos.getRow());
         gameState.getPlayerPosition().setCol(newPos.getCol());
-        
-        // Handle ranged attacks
+
         handleRangedAttacks();
 
         // Check for game over after interactions and attacks
-        if (gameState.isGameOver()) {
+        if (gameState.isGameOver())
+        {
             handleGameOver();
             return true;
         }
 
-        // Handle level completion if exit was reached
-        if (isExitReached) {
+        if (isExitReached)
+        {
             handleLevelComplete();
         }
 
@@ -125,15 +146,18 @@ public boolean movePlayer(String direction) {
     return false;
 }
 
-// Add this new method to handle game over
-private void handleGameOver() {
+private void handleGameOver()
+{
     gameCompleted = true;
     System.out.println("\n=========================");
     System.out.println("      GAME OVER!");
     System.out.println("=========================");
-    if (gameState.getPlayerHP() <= 0) {
+    if (gameState.getPlayerHP() <= 0)
+    {
         System.out.println("You ran out of health!");
-    } else {
+    }
+    else
+    {
         System.out.println("You ran out of moves!");
     }
     System.out.println("Final Score: " + gameState.getScore());
@@ -141,10 +165,10 @@ private void handleGameOver() {
     System.out.println("=========================\n");
 }
 
-    // Modified level completion handler
-    private void handleLevelComplete() {
-        if (gameState.getCurrentLevel() == 1) {
-            // Store exit position before changing the map
+    private void handleLevelComplete()
+    {
+        if (gameState.getCurrentLevel() == 1)
+        {
             GameState.Position exitPos = new GameState.Position(
                 gameState.getPlayerPosition().getRow(),
                 gameState.getPlayerPosition().getCol()
@@ -159,21 +183,23 @@ private void handleGameOver() {
         
             System.out.println("\n=== LEVEL " + gameState.getCurrentLevel() + " ===");
             System.out.println("You found the exit! Moving to next level...\n");
-        } else if (gameState.getCurrentLevel() == 2) {
-            // Complete the game
+        }
+        else if (gameState.getCurrentLevel() == 2)
+        {
             gameCompleted = true;
         }
     }
 
-private boolean isValidMove(GameState.Position pos) {
+private boolean isValidMove(GameState.Position pos)
+{
     if (pos.getRow() < 0 || pos.getRow() >= map.length || 
-        pos.getCol() < 0 || pos.getCol() >= map.length) {
+        pos.getCol() < 0 || pos.getCol() >= map.length)
+    {
         return false;
     }
     return !map[pos.getRow()][pos.getCol()].blocksMovement();
 }
 
-    // Getters for new GameState
     public GameState getGameState()
     {
         return gameState;
@@ -200,7 +226,8 @@ private boolean isValidMove(GameState.Position pos) {
         return map;
     }
 
-    public int getSize() {
+    public int getSize()
+    {
         return map.length;
     }
 
@@ -211,129 +238,147 @@ private boolean isValidMove(GameState.Position pos) {
         ui.start();
     }
 
-private void placeTraps() {
-    // We want to place 5 traps
+private void placeTraps()
+{
     int trapsToPlace = 5;
     java.util.Random random = new java.util.Random();
     
-    while (trapsToPlace > 0) {
-        // Get random coordinates
+    while (trapsToPlace > 0)
+    {
         int row = random.nextInt(size);
         int col = random.nextInt(size);
-        
-        // Only place trap if the cell is empty
+
         if (map[row][col].getType().equals("EMPTY")) {
             map[row][col] = CellFactory.createCell("TRAP");
             trapsToPlace--;
         }
     }
 }
-private void placeGold() {
-    // Place 5 gold pieces
+private void placeGold()
+{
     int goldToPlace = 5;
     java.util.Random random = new java.util.Random();
     
-    while (goldToPlace > 0) {
+    while (goldToPlace > 0)
+    {
         int row = random.nextInt(size);
         int col = random.nextInt(size);
-        
-        // Only place gold if the cell is empty
+
         if (map[row][col].getType().equals("EMPTY")) {
             map[row][col] = CellFactory.createCell("GOLD");
             goldToPlace--;
         }
     }
 }
-private void placeHealthPotions() {
-    // Place 2 health potions per level
+
+private void placeHealthPotions()
+{
     int potionsToPlace = 2;
     java.util.Random random = new java.util.Random();
     
-    while (potionsToPlace > 0) {
+    while (potionsToPlace > 0)
+    {
         int row = random.nextInt(size);
         int col = random.nextInt(size);
-        
-        // Only place potion if the cell is empty
-        if (map[row][col].getType().equals("EMPTY")) {
+
+        if (map[row][col].getType().equals("EMPTY"))
+        {
             map[row][col] = CellFactory.createCell("HEALTH_POTION");
             potionsToPlace--;
         }
     }
 }
-private void placeMeleeMutants() {
-    // Place 3 melee mutants per level
+private void placeMeleeMutants()
+{
     int mutantsToPlace = 3;
     java.util.Random random = new java.util.Random();
     
-    while (mutantsToPlace > 0) {
+    while (mutantsToPlace > 0)
+    {
         int row = random.nextInt(size);
         int col = random.nextInt(size);
-        
-        // Only place mutant if the cell is empty
-        if (map[row][col].getType().equals("EMPTY")) {
+
+        if (map[row][col].getType().equals("EMPTY"))
+        {
             map[row][col] = CellFactory.createCell("MELEE_MUTANT");
             mutantsToPlace--;
         }
     }
 }
-private void placeRangedMutants() {
-    // Place 3 ranged mutants per level
+private void placeRangedMutants()
+{
     int mutantsToPlace = 3;
     java.util.Random random = new java.util.Random();
     
-    while (mutantsToPlace > 0) {
+    while (mutantsToPlace > 0)
+    {
         int row = random.nextInt(size);
         int col = random.nextInt(size);
-        
-        // Only place mutant if the cell is empty
-        if (map[row][col].getType().equals("EMPTY")) {
+
+        if (map[row][col].getType().equals("EMPTY"))
+        {
             map[row][col] = CellFactory.createCell("RANGED_MUTANT");
             mutantsToPlace--;
         }
     }
 }
 
-private boolean canRangedMutantShoot(int mutantRow, int mutantCol, int playerRow, int playerCol) {
-    // Check if player is within 2 cells (Manhattan distance)
+private boolean canRangedMutantShoot(int mutantRow, int mutantCol, int playerRow, int playerCol)
+{
+    // Check if player is within 2 cells
     int distance = Math.abs(mutantRow - playerRow) + Math.abs(mutantCol - playerCol);
     if (distance > 2 || distance == 0) return false;
     
     // Check if there's a wall between mutant and player
-    if (mutantRow == playerRow) {
+    if (mutantRow == playerRow)
+    {
         int step = (playerCol > mutantCol) ? 1 : -1;
-        for (int col = mutantCol + step; col != playerCol; col += step) {
-            if (map[mutantRow][col].getType().equals("WALL")) {
+        for (int col = mutantCol + step; col != playerCol; col += step)
+        {
+            if (map[mutantRow][col].getType().equals("WALL"))
+            {
                 return false;
             }
         }
     }
-    else if (mutantCol == playerCol) {
+    else if (mutantCol == playerCol)
+    {
         int step = (playerRow > mutantRow) ? 1 : -1;
-        for (int row = mutantRow + step; row != playerRow; row += step) {
-            if (map[row][mutantCol].getType().equals("WALL")) {
+        for (int row = mutantRow + step; row != playerRow; row += step)
+        {
+            if (map[row][mutantCol].getType().equals("WALL"))
+            {
                 return false;
             }
         }
     }
-    else {
+    else
+    {
         return false;
     }
-    
     return true;
 }
-private void handleRangedAttacks() {
+
+private void handleRangedAttacks()
+{
     GameState.Position playerPos = gameState.getPlayerPosition();
     java.util.Random random = new java.util.Random();
-    
-    // Check all ranged mutants
-    for (int row = 0; row < size; row++) {
-        for (int col = 0; col < size; col++) {
-            if (map[row][col].getType().equals("RANGED_MUTANT")) {
-                if (canRangedMutantShoot(row, col, playerPos.getRow(), playerPos.getCol())) {
-                    if (random.nextBoolean()) {
+
+    for (int row = 0; row < size; row++)
+    {
+        for (int col = 0; col < size; col++)
+        {
+            if (map[row][col].getType().equals("RANGED_MUTANT"))
+            {
+                if (canRangedMutantShoot(row, col, playerPos.getRow(), playerPos.getCol()))
+                {
+                    if (random.nextBoolean())
+                    {
                         gameState.changeHP(-2);
                         System.out.println("A ranged mutant hit you for 2 damage!");
-                    } else {
+                    }
+                    else
+                    {
                         System.out.println("A ranged mutant missed their shot!");
                     }
                 }
