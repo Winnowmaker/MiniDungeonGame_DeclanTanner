@@ -35,7 +35,8 @@ public class CellView extends StackPane {
         
         String imagePath = IMAGE_PATH + imageName;
         var imageStream = getClass().getResourceAsStream(imagePath);
-        if (imageStream == null) {
+        if (imageStream == null)
+        {
             throw new IllegalStateException("Cannot find image: " + imagePath);
         }
         Image image = new Image(imageStream);

@@ -1,5 +1,6 @@
 package dungeon.engine;
 import java.util.Scanner;
+import java.util.List;
 
 public class TextUI
 {
@@ -107,14 +108,42 @@ public class TextUI
                 " | Moves left: " + state.getMovesLeft());
     }
 
-    // New method to display end game screen
     private void displayEndGame() {
+        GameState state = engine.getGameState();
+        int finalScore = state.getScore();
+        
         System.out.println("\n=========================");
         System.out.println("    GAME COMPLETED!");
         System.out.println("=========================");
-        System.out.println("Final Score: " + engine.getGameState().getScore());
-        System.out.println("HP Remaining: " + engine.getGameState().getPlayerHP());
-        System.out.println("Moves Remaining: " + engine.getGameState().getMovesLeft());
+        System.out.println("Final Score: " + finalScore);
+        System.out.println("HP Remaining: " + state.getPlayerHP());
+        System.out.println("Moves Remaining: " + state.getMovesLeft());
+        
+        HighScoreManager hsm = engine.getHighScoreManager();
+        
+        if (hsm.isHighScore(finalScore)) {
+            System.out.println("\n🎉 CONGRATULATIONS! You achieved a high score! 🎉");
+            System.out.print("Enter your name: ");
+            String playerName = scanner.nextLine();
+            hsm.addScore(playerName, finalScore);
+        }
+        
+        // Display high scores
+        System.out.println("\n=== HIGH SCORES ===");
+        List<HighScoreManager.ScoreEntry> highScores = hsm.getHighScores();
+        if (highScores.isEmpty()) {
+            System.out.println("No high scores yet!");
+        } else {
+            for (int i = 0; i < highScores.size(); i++) {
+                HighScoreManager.ScoreEntry entry = highScores.get(i);
+                System.out.printf("%d. %-15s %5d  (%s)%n",
+                    i + 1,
+                    entry.getPlayerName(),
+                    entry.getScore(),
+                    entry.getDate());
+            }
+        }
+        
         System.out.println("=========================");
         System.out.println("Thank you for playing!");
         System.out.println("=========================\n");
