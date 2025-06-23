@@ -52,7 +52,7 @@ public class TextUI
         for (int i = 0; i < size; i++) {
             System.out.print("| "); // Left border
             for (int j = 0; j < size; j++) {
-                char symbol = getSymbolForEntity(map[i][j].getEntityType());
+                char symbol = getSymbolForCell(map[i][j]);
                 System.out.print(symbol + " ");
             }
             System.out.println("|"); // Right border
@@ -130,20 +130,19 @@ public class TextUI
         System.out.println("QUIT   - Exit the game\n");
     }
 
-    private char getSymbolForEntity(EntityType type)
-    {
-        return switch (type)
-        {
-            case ENTRY -> 'E';
-            case EXIT -> 'L';
-            case PLAYER -> 'P';
-            case WALL -> '#';
-            case TRAP -> 'T';
-            case GOLD -> 'G';
-            case MELEE_MUTANT -> 'M';
-            case RANGED_MUTANT -> 'R';
-            case HEALTH_POTION -> 'H';
-            case EMPTY -> '.';
+    private char getSymbolForCell(Cell cell) {
+        return switch (cell.getType()) {
+            case "ENTRY" -> 'E';
+            case "EXIT" -> 'L';
+            case "PLAYER" -> 'P';
+            case "WALL" -> '#';
+            case "TRAP" -> 'T';
+            case "GOLD" -> 'G';
+            case "MELEE_MUTANT" -> 'M';
+            case "RANGED_MUTANT" -> 'R';
+            case "HEALTH_POTION" -> 'H';
+            case "EMPTY" -> '.';
+            default -> '?';
         };
     }
 }
